@@ -28,7 +28,7 @@ jobs:
         uses: anomalyco/opencode/github@latest
         env:
           # Free tier, no card -- https://aistudio.google.com/apikey
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           BANXICO_TOKEN: ${{ secrets.BANXICO_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
