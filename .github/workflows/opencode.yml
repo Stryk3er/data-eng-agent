@@ -24,6 +24,11 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Configure git identity
+        run: |
+          git config --global user.name "data-eng-agent-bot"
+          git config --global user.email "actions@users.noreply.github.com"
+
       - name: Restore DuckDB warehouse from cache
         uses: actions/cache/restore@v4
         with:
