@@ -170,6 +170,18 @@ sembrando datos sintéticos y corriendo `dbt build` dos veces seguidas
 (90 filas antes, 90 después), y en la máquina real con datos de la API
 verdadera.
 
+**Backfill validado con datos reales:** `python -m extraction.extract
+--source open_meteo --mode backfill --start 2025-01-01 --end 2025-01-31`
+trajo exactamente 62 filas (31 días × 2 ubicaciones) de hace más de un
+año, sin tocar el watermark de la extracción incremental — confirmando
+que ambos modos son independientes entre sí, como se diseñó.
+
+**MCP `context7` validado en uso real:** se le pidió al agente que
+consultara la documentación de `dbt_utils.accepted_range` — llamó
+`context7_resolve-library-id` y `context7_query-docs` de verdad (no
+simulado), trajo la documentación real, y la usó para confirmar
+correctamente que la configuración del test en este proyecto es válida.
+
 ## `make chaos` — para que rompas tu propia versión
 
 ```bash
@@ -438,3 +450,19 @@ merge en esos dos archivos al hacer `git pull`. Se resuelven sin
 pérdida de información real — ambas versiones solo representan "hasta
 qué fecha ya se extrajo", así que quedarse con cualquiera de las dos es
 seguro.
+
+**Límite real de `delete+insert` al limpiar el chaos manualmente.**
+Después de correr `make chaos`, se limpió la fila envenenada borrándola
+directamente de `raw.open_meteo_daily` — pero `dbt build` siguió
+fallando el mismo test, porque la fila mala seguía en el mart
+`fct_daily_conditions`. Mecanismo: `delete+insert` borra en el destino
+solo las llaves (`location`, `date`) que **sí aparecen** en el lote nuevo
+que trae el `SELECT` de esa corrida. Al borrar la fila de `raw` por
+completo, esa fecha dejó de aparecer en cualquier parte de la consulta —
+así que el modelo nunca "vio" esa llave para saber que debía borrarla del
+mart también. Es una limitación real de esta estrategia incremental:
+corrige valores que cambian para una llave que sigue existiendo, pero no
+limpia una llave que desaparece de la fuente por completo. El fix
+manual fue borrar la fila también del mart directamente; el fix "correcto"
+en un escenario real habría sido justo un `--full-refresh` — el mismo
+camino que este proyecto protege detrás de aprobación humana.
