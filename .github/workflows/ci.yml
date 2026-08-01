@@ -22,6 +22,14 @@ jobs:
           pip install -r requirements.txt
           dbt deps --project-dir dbt_project
 
+      - name: Restore DuckDB warehouse from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: data/warehouse.duckdb
+          key: duckdb-warehouse-${{ github.run_id }}
+          restore-keys: |
+            duckdb-warehouse-
+
       - name: Extract (incremental, both sources)
         env:
           BANXICO_TOKEN: ${{ secrets.BANXICO_TOKEN }}
@@ -42,3 +50,10 @@ jobs:
           git add state/*.json
           git diff --cached --quiet || git commit -m "chore: advance extraction watermark [skip ci]"
           git push
+
+      - name: Save DuckDB warehouse to cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/warehouse.duckdb
+          key: duckdb-warehouse-${{ github.run_id }}
