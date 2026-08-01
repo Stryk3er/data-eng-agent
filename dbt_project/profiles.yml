@@ -4,5 +4,5 @@ data_eng_agent:
   outputs:
     dev:
       type: duckdb
-      path: ../data/warehouse.duckdb
+      path: data/warehouse.duckdb
       schema: main
