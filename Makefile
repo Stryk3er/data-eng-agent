@@ -19,7 +19,7 @@ dbt-test:
 	dbt test --project-dir dbt_project --profiles-dir dbt_project
 
 chaos:
-	python scripts/chaos.py --mode $(or $(MODE),business_rule)
+	python -m scripts.chaos --mode $(or $(MODE),business_rule)
 
 clean:
 	rm -f data/warehouse.duckdb data/warehouse.duckdb.wal
