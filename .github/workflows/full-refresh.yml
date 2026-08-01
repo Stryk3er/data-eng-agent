@@ -37,8 +37,15 @@ jobs:
           pip install -r requirements.txt
           dbt deps --project-dir dbt_project
 
+      - name: Restore DuckDB warehouse from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: data/warehouse.duckdb
+          key: duckdb-warehouse-${{ github.run_id }}
+          restore-keys: |
+            duckdb-warehouse-
+
       - name: Run the approved destructive operation
         env:
           BANXICO_TOKEN: ${{ secrets.BANXICO_TOKEN }}
-        working-directory: dbt_project
-        run: ${{ github.event.inputs.operation }}
+        run: ${{ github.event.inputs.operation }} --project-dir dbt_project --profiles-dir dbt_project
