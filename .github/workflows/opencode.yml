@@ -27,10 +27,10 @@ jobs:
       - name: Run OpenCode agent
         uses: anomalyco/opencode/github@latest
         env:
-          # Free tier, no card -- https://console.groq.com/keys
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          # Free tier, no card -- https://aistudio.google.com/apikey
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           BANXICO_TOKEN: ${{ secrets.BANXICO_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          model: groq/llama-3.3-70b-versatile
+          model: google/gemini-3.5-flash-lite
           use_github_token: true
