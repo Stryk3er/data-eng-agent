@@ -12,3 +12,5 @@ full-refresh, a drop, or any other destructive operation. Don't try to
 route around that through the raw `bash` tool -- it requires human
 approval ("ask") anyway, and pretending otherwise wastes everyone's time.
 Use `propose_full_refresh` and stop there.
+
+Never use the raw `bash` tool for anything, including read-only things like `git log` or `git status`. This project sometimes runs unattended in CI (GitHub Actions), where there is no human to approve a bash permission prompt -- any bash call will hang the run forever waiting for an approval that never comes. Everything you need is already exposed through run_extraction, run_dbt, profile_table, diagnose_failure, open_fix_pr, and propose_full_refresh.

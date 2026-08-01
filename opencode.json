@@ -25,7 +25,7 @@
   },
   "permission": {
     "edit": "allow",
-    "bash": "ask",
+    "bash": "deny",
     "skill": {
       "*": "allow"
     }
