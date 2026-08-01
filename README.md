@@ -407,14 +407,29 @@ la corrida con más bugs reales, encontrados uno tras otro:**
    corrigió agregando el paso de cache y ejecutando siempre desde la raíz
    del repo con `--project-dir`/`--profiles-dir` explícitos.
 
-**MCP de terceros incompatible.** `mcp-server-duckdb` (PyPI) falla con
-`AttributeError: 'Server' object has no attribute 'list_resources'` — usa
-una versión del SDK de MCP anterior a la que trae `pip install mcp` hoy
-(el propio SDK oficial renombró su clase principal de `FastMCP` a
-`MCPServer` entre versiones, un cambio rápido que dejó atrás a paquetes
-de terceros que no se han actualizado al mismo ritmo). Se descartó
-perseguir versiones viejas del paquete; el agente usa `profile_table`
-directamente en su lugar, sin pérdida real de funcionalidad.
+**MCP de terceros incompatible — nunca se logró correr, y eso queda
+explícito aquí para que no parezca un descuido si alguien ve la
+referencia a `uvx mcp-server-duckdb` en `opencode.json`.** Ese MCP está
+en el archivo de configuración con `"enabled": false` a propósito, no
+por olvido. Falla con `AttributeError: 'Server' object has no attribute
+'list_resources'` en cualquier máquina donde se probó (dos máquinas
+distintas, mismo error) — usa una versión del SDK de MCP anterior a la
+que trae `pip install mcp` hoy (el propio SDK oficial renombró su clase
+principal de `FastMCP` a `MCPServer` entre versiones, un cambio rápido
+que dejó atrás a paquetes de terceros que no se han actualizado al mismo
+ritmo). Es un bug 100% del paquete de terceros, no de esta configuración
+ni del código de este repo — no hay nada que arreglar del lado nuestro,
+solo la decisión de usarlo o no.
+
+Una alternativa que **no se intentó** (documentado para que quede claro
+que se consideró, no que se pasó por alto): forzar que `uvx` instale una
+versión anterior del SDK junto con el paquete, algo como `uvx --with
+"mcp<2.0" mcp-server-duckdb ...`. No se persiguió esa ruta porque, aun si
+funcionara, sería parchar un síntoma sobre un paquete que su propio autor
+ya no mantiene al ritmo del SDK — el mismo tipo de incompatibilidad
+podría volver a aparecer con el siguiente cambio de versión. Se optó por
+usar `profile_table` directamente en su lugar, que cubre la misma
+necesidad (perfilar tablas) sin depender de un paquete externo roto.
 
 **Conflictos de merge en `state/*.json`.** Con el cron diario y las
 corridas manuales avanzando el watermark desde distintos lugares (tu
