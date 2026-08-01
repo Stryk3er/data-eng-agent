@@ -25,7 +25,12 @@
   },
   "permission": {
     "edit": "allow",
-    "bash": "ask",
+    "bash": {
+      "git status": "allow",
+      "git log*": "allow",
+      "git diff*": "allow",
+      "*": "ask"
+    },
     "skill": {
       "*": "allow"
     }

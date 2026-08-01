@@ -24,6 +24,19 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Restore DuckDB warehouse from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: data/warehouse.duckdb
+          key: duckdb-warehouse-${{ github.run_id }}
+          restore-keys: |
+            duckdb-warehouse-
+
+      - name: Install pipeline dependencies
+        run: |
+          python3 -m pip install --break-system-packages -r requirements.txt
+          dbt deps --project-dir dbt_project
+
       - name: Run OpenCode agent
         uses: anomalyco/opencode/github@latest
         env:
