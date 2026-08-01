@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: fct_daily_conditions
+    description: >
+      One row per (location, date). Combines daily weather with the
+      same-day USD/MXN reference rate (carried forward across
+      non-business days -- see int_fx_gap_filled). Incremental,
+      delete+insert, 10-day lookback -- see the model's config comment
+      for why that strategy specifically.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: location
+        data_type: varchar
+        description: Weather station identifier (cdmx, monterrey).
+        tests: [not_null]
+      - name: date
+        data_type: date
+        description: Calendar date. Grain key together with location.
+        tests: [not_null]
+      - name: temp_max_c
+        data_type: double
+        description: Daily max temperature in Celsius (Open-Meteo archive).
+      - name: temp_min_c
+        data_type: double
+        description: Daily min temperature in Celsius (Open-Meteo archive).
+      - name: temp_range_c
+        data_type: double
+        description: temp_max_c - temp_min_c, computed in the intermediate layer.
+      - name: precipitation_mm
+        data_type: double
+        description: Daily precipitation sum in millimeters.
+      - name: fx_usd_mxn
+        data_type: double
+        description: >
+          USD/MXN FIX rate (Banxico series SF43718). Carried forward from
+          the last published business day on weekends/holidays.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 5
+              max_value: 50
+      - name: fx_is_published_rate
+        data_type: boolean
+        description: False when fx_usd_mxn was carried forward rather than freshly published that day.
+      - name: is_business_day
+        data_type: boolean
+        description: Derived from date's day-of-week (Mon-Fri = true).
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [location, date]

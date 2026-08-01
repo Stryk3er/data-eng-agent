@@ -1,0 +1,21 @@
+name: 'data_eng_agent'
+version: '1.0.0'
+config-version: 2
+profile: 'data_eng_agent'
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  data_eng_agent:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table

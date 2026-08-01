@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          pip install -r requirements.txt
+          dbt deps --project-dir dbt_project
+
+      - name: Extract (incremental, both sources)
+        env:
+          BANXICO_TOKEN: ${{ secrets.BANXICO_TOKEN }}
+        run: |
+          python -m extraction.extract --source open_meteo --mode incremental
+          python -m extraction.extract --source banxico --mode incremental
+
+      - name: dbt build (models + tests together)
+        run: dbt build --project-dir dbt_project --profiles-dir dbt_project
+
+      # Only advance the persisted watermark on main -- PR runs from forks
+      # or feature branches must not silently move it.
+      - name: Commit updated watermark state
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git config user.name "data-eng-agent-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add state/*.json
+          git diff --cached --quiet || git commit -m "chore: advance extraction watermark [skip ci]"
+          git push

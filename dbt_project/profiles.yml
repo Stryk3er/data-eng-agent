@@ -1,0 +1,8 @@
+# Local/CI profile. No credentials -- DuckDB is just a file on disk.
+data_eng_agent:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../data/warehouse.duckdb
+      schema: main

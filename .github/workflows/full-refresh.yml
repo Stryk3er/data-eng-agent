@@ -1,0 +1,44 @@
+name: full-refresh
+
+# The human-approval gate. This job cannot start until BOTH:
+#   1. Someone types confirm=yes when dispatching it, AND
+#   2. A required reviewer on the `destructive-ops` environment approves
+#      the run (configured in Settings > Environments -- see README).
+#
+# The agent's propose_full_refresh tool can open the issue that tells a
+# human to come dispatch this workflow. It cannot dispatch it itself, and
+# even if it somehow did, step 2 would still block execution.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "yes" to confirm you want to run a destructive full-refresh'
+        required: true
+      operation:
+        description: 'Exact command, e.g. dbt build --full-refresh --select marts.fct_daily_conditions'
+        required: true
+
+jobs:
+  full-refresh:
+    if: github.event.inputs.confirm == 'yes'
+    runs-on: ubuntu-latest
+    environment: destructive-ops
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: |
+          pip install -r requirements.txt
+          dbt deps --project-dir dbt_project
+
+      - name: Run the approved destructive operation
+        env:
+          BANXICO_TOKEN: ${{ secrets.BANXICO_TOKEN }}
+        working-directory: dbt_project
+        run: ${{ github.event.inputs.operation }}

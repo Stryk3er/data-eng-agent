@@ -1,0 +1,45 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "groq/llama-3.3-70b-versatile",
+  "small_model": "groq/llama-3.1-8b-instant",
+  "instructions": ["AGENTS.md"],
+
+  "mcp": {
+    "duckdb": {
+      "type": "local",
+      "command": ["uvx", "mcp-server-duckdb", "--db-path", "./data/warehouse.duckdb", "--readonly"],
+      "enabled": true
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true
+    }
+  },
+
+  "permission": {
+    "edit": "allow",
+    "bash": "ask",
+    "skill": {
+      "*": "allow"
+    }
+  },
+
+  "agent": {
+    "data-engineer": {
+      "description": "Operates the weather+FX pipeline: extraction, dbt, profiling, diagnosis, fix PRs. Cannot execute destructive operations -- only propose them.",
+      "model": "groq/llama-3.3-70b-versatile",
+      "prompt": "{file:AGENTS.md}",
+      "tools": {
+        "run_extraction": true,
+        "run_dbt": true,
+        "profile_table": true,
+        "diagnose_failure": true,
+        "open_fix_pr": true,
+        "propose_full_refresh": true
+      }
+    }
+  },
+
+  "default_agent": "data-engineer"
+}

@@ -1,0 +1,40 @@
+name: scheduled-incremental
+
+on:
+  schedule:
+    - cron: "0 7 * * *"  # daily, 07:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: |
+          pip install -r requirements.txt
+          dbt deps --project-dir dbt_project
+
+      - name: Extract + build (this is the pipeline "operating itself")
+        env:
+          BANXICO_TOKEN: ${{ secrets.BANXICO_TOKEN }}
+        run: |
+          python -m extraction.extract --source open_meteo --mode incremental
+          python -m extraction.extract --source banxico --mode incremental
+          dbt build --project-dir dbt_project --profiles-dir dbt_project
+
+      - name: Persist watermark back to the repo
+        run: |
+          git config user.name "data-eng-agent-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add state/*.json
+          git diff --cached --quiet || git commit -m "chore: scheduled incremental run [skip ci]"
+          git push

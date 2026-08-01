@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: Tables written directly by extraction/extract.py. Never modeled here -- staging is the first modeled layer.
+    tables:
+      - name: open_meteo_daily
+        loaded_at_field: extracted_at
+        description: Daily max/min temp + precipitation per location, from Open-Meteo's archive API.
+      - name: banxico_fx
+        loaded_at_field: extracted_at
+        description: Daily USD/MXN FIX rate from Banxico, business days only (weekends/holidays have no row).
